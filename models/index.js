@@ -73,9 +73,9 @@ require('dotenv').config();
 
 let sequelize;
 
-if (process.env.DATABASE_URL) {
+if ('postgres://route_budget_user:wasebpostgresql%40%23%24123@dpg-d2he6sgdl3ps7387s2o0-a.db.render.com:5432/route_budget') {
   console.log('🌐 Using DATABASE_URL');
-  sequelize = new Sequelize(process.env.DATABASE_URL, {
+  sequelize = new Sequelize('postgres://route_budget_user:wasebpostgresql%40%23%24123@dpg-d2he6sgdl3ps7387s2o0-a.db.render.com:5432/route_budget', {
     dialect: 'postgres',
     dialectOptions: process.env.NODE_ENV === 'production' ? {
       ssl: {
