@@ -69,31 +69,13 @@
 
 
 const { Sequelize, DataTypes } = require('sequelize');
-require('dotenv').config();
 
-let sequelize;
-
-if ('postgres://route_budget_user:wasebpostgresql%40%23%24123@dpg-d2he6sgdl3ps7387s2o0-a.db.render.com:5432/route_budget') {
-  console.log('🌐 Using DATABASE_URL');
-  sequelize = new Sequelize('postgres://route_budget_user:wasebpostgresql%40%23%24123@dpg-d2he6sgdl3ps7387s2o0-a.db.render.com:5432/route_budget', {
-    dialect: 'postgres',
-    dialectOptions: process.env.NODE_ENV === 'production' ? {
-      ssl: {
-        require: true,
-        rejectUnauthorized: false,
-      },
-    } : {},
-    logging: false,
-  });
-} else {
-  console.log('💻 Using local DB config');
-  sequelize = new Sequelize('route_budget', 'postgres', 'wasebpostgresql@#$123', {
-    host: 'localhost',
-    port: 5432,
-    dialect: 'postgres',
-    logging: false,
-  });
-}
+// Sequelize instance
+const sequelize = new Sequelize('route_budget', 'postgres', 'wasebpostgresql@#$123', {
+  host: 'localhost',
+  dialect: 'postgres',
+  logging: false,
+});
 
 // Import models
 const AdminModel = require('./Admin');
@@ -106,7 +88,7 @@ const ServicingAssignmentModel = require('./ServicingAssignment');
 const AnalyticsModel = require('./SubadminAnalytics');
 const ExpenseModel = require('./Expense');
 const SubAdminPermissionsModel = require('./subAdminPermissions');
-const SubadminExpensesModel = require("./subAdminExpenses");
+const SubadminExpensesModel = require ("./subAdminExpenses")
 
 // Initialize models
 const Admin = AdminModel(sequelize, DataTypes);
@@ -119,7 +101,7 @@ const ServicingAssignment = ServicingAssignmentModel(sequelize, DataTypes);
 const Analytics = AnalyticsModel(sequelize, DataTypes);
 const Expense = ExpenseModel(sequelize, DataTypes);
 const SubAdminPermissions = SubAdminPermissionsModel(sequelize, DataTypes);
-const SubadminExpenses = SubadminExpensesModel(sequelize, DataTypes);
+const SubadminExpenses = SubadminExpensesModel(sequelize,DataTypes);
 
 // Associations
 Driver.hasMany(CabAssignment, { foreignKey: 'driverId' });
@@ -146,20 +128,25 @@ Driver.hasMany(ServicingAssignment, { foreignKey: 'driverId' });
 ServicingAssignment.belongsTo(Admin, { foreignKey: 'assignedBy' });
 Admin.hasMany(ServicingAssignment, { foreignKey: 'assignedBy' });
 
+// Optional association for SubAdminPermissions (if Admin → SubAdmin)
 SubAdminPermissions.belongsTo(Admin, { foreignKey: 'subAdminId' });
 Admin.hasMany(SubAdminPermissions, { foreignKey: 'subAdminId' });
 
 Admin.hasMany(Expense, { foreignKey: 'adminId' });
 Expense.belongsTo(Admin, { foreignKey: 'adminId' });
 
+// ✅ SubadminExpenses
 Admin.hasMany(SubadminExpenses, { foreignKey: 'adminId' });
 SubadminExpenses.belongsTo(Admin, { foreignKey: 'adminId' });
+
+
+
 
 // Sync DB
 sequelize
   .sync({ alter: true })
   .then(() => console.log('✅ Database synced successfully'))
-  .catch((err) => console.error('❌ Failed to sync database:', err));
+  .catch((err) => console.error(' Failed to sync database:', err));
 
 // Export all models
 module.exports = {

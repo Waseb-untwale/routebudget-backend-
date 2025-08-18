@@ -35,34 +35,18 @@
 const { Sequelize } = require('sequelize');
 require('dotenv').config();
 
-let sequelize;
-
-if ("postgres://route_budget_user:wasebpostgresql%40%23%24123@dpg-d2he6sgdl3ps7387s2o0-a.db.render.com:5432/route_budget") {
-  console.log('Using Database URL');
-  sequelize = new Sequelize("postgres://route_budget_user:wasebpostgresql%40%23%24123@dpg-d2he6sgdl3ps7387s2o0-a.db.render.com:5432/route_budget", {
+// Direct fallback values if .env values are commented out
+const sequelize = new Sequelize(
+  'route_budget',    // DB name fallback
+  'postgres',       // Username fallback
+  'wasebpostgresql@#$123',          // Password fallback
+  {
+    host: 'localhost',
+    port: 5432,
     dialect: 'postgres',
-    dialectOptions: process.env.NODE_ENV === 'production' ? {
-      ssl: {
-        require: true,
-        rejectUnauthorized: false,
-      },
-    } : {}, // 👈 No SSL for local
     logging: false,
-  });
-} else {
-  console.log('Using Local DB Config');
-  sequelize = new Sequelize(
-    'route_budget',
-    'postgres',
-    'wasebpostgresql@#$123',
-    {
-      host: 'localhost',
-      port: 5432,
-      dialect: 'postgres',
-      logging: false,
-    }
-  );
-}
+  }
+);
 
 const connectDB = async () => {
   try {
