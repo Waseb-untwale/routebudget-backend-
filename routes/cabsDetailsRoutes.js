@@ -554,8 +554,6 @@ router.patch("/add", authMiddleware, isAdmin, upload ,async (req, res) => {
 //  DONE
 
 
-
-
 router.patch("/driver/add", driverAuthMiddleware, upload, async (req, res) => {
   try {
     console.log("📝 Request Body:", req.body);
@@ -727,7 +725,6 @@ router.patch("/driver/add", driverAuthMiddleware, upload, async (req, res) => {
       .json({ message: "Error updating/creating cab", error: error.message });
   }
 });   
-
 
 
 

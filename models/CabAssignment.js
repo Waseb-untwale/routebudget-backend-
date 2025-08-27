@@ -156,7 +156,8 @@ module.exports = (sequelize) => {
       servicingImage: { type: DataTypes.ARRAY(DataTypes.STRING) },
       servicingReceiptImage: { type: DataTypes.ARRAY(DataTypes.STRING) },
       servicingAmount: { type: DataTypes.ARRAY(DataTypes.FLOAT) },
-      servicingMeter: { type: DataTypes.ARRAY(DataTypes.FLOAT) },
+      // servicingMeter: { type: DataTypes.ARRAY(DataTypes.FLOAT) },
+      servicingMeter: {type: DataTypes.ARRAY(DataTypes.FLOAT), defaultValue: []},
       servicingKmTravelled: { type: DataTypes.FLOAT },
       servicingTotalKm: { type: DataTypes.FLOAT },
 

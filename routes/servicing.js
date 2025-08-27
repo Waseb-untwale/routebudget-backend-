@@ -11,7 +11,8 @@ const {
   assignServicing,
   updateServicingStatus,
   getAssignedServicings,
-  getAssignedServicingsAdmin
+  getAssignedServicingsAdmin,
+  getServicingById
 } = require("../controllers/servicingController");
 
 // ✅ Admin assigns a servicing task to a driver
@@ -28,6 +29,9 @@ router.put("/update/:id",
 router.get("/my-assignments", driverAuthMiddleware, getAssignedServicings);
 
 router.get('/',authMiddleware,getAssignedServicingsAdmin)
+
+router.get("/:id", authMiddleware,getServicingById);
+
 
 module.exports = router;
 

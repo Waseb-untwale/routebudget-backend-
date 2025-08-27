@@ -160,169 +160,28 @@ const assignTripToDriver = async (req, res) => {
   }
 };
 
-// const updateTripDetailsByDriver = async (req, res) => {
-//   try {
-//     const driverId = req.driver.id;
 
-//     const assignment = await CabAssignment.findOne({
-//       driver: driverId,
-//       // status: { $ne: "completed" },
-//     }).select('tripDetails driver cab status');
+//correct code with odometer
 
-//     if (!assignment) {
-//       return res.status(404).json({ message: "No active trip found for this driver." });
-//     }
-
-//     const files = req.files || {};
-//     const body = req.body || {};
-//     const trip = assignment.tripDetails || {};
-
-//     // Utility: Sanitize keys
-//     const sanitizedBody = Object.fromEntries(
-//       Object.entries(body).map(([k, v]) => [k.trim(), v])
-//     );
-
-//     // Utility: Safe JSON parsing
-//     const parseJSON = (val) => {
-//       if (typeof val !== "string") return val || {};
-//       try {
-//         return JSON.parse(val);
-//       } catch {
-//         return {};
-//       }
-//     };
-
-//     // Utility: Extract file paths
-//     const extractPaths = (field) =>
-//       Array.isArray(files[field]) ? files[field].map(f => f.path) : [];
-
-//     // Utility: Merge arrays
-//     const mergeArray = (existing = [], incoming) =>
-//       existing.concat(Array.isArray(incoming) ? incoming : [incoming]).filter(Boolean);
-
-//     // Utility: Calculate distance
-//     const calculateKm = (meters) =>
-//       meters.reduce((acc, curr, i, arr) =>
-//         i === 0 ? acc : acc + Math.max(0, curr - arr[i - 1]), 0
-//       );
-
-//     // === Process Fields ===
-
-//     if (sanitizedBody.location) {
-//       trip.location = { ...trip.location, ...parseJSON(sanitizedBody.location) };
-//     }
-
-//     if (sanitizedBody.fuel) {
-//       const fuel = parseJSON(sanitizedBody.fuel);
-//       trip.fuel = {
-//         ...trip.fuel,
-//         ...fuel,
-//         amount: mergeArray(trip.fuel?.amount, fuel.amount),
-//         receiptImage: mergeArray(trip.fuel?.receiptImage, extractPaths("receiptImage")),
-//         transactionImage: mergeArray(trip.fuel?.transactionImage, extractPaths("transactionImage")),
-//       };
-//     }
-
-//     if (sanitizedBody.fastTag) {
-//       const tag = parseJSON(sanitizedBody.fastTag);
-//       trip.fastTag = {
-//         ...trip.fastTag,
-//         ...tag,
-//         amount: mergeArray(trip.fastTag?.amount, tag.amount),
-//       };
-//     }
-
-//     if (sanitizedBody.tyrePuncture) {
-//       const tyre = parseJSON(sanitizedBody.tyrePuncture);
-//       trip.tyrePuncture = {
-//         ...trip.tyrePuncture,
-//         ...tyre,
-//         repairAmount: mergeArray(trip.tyrePuncture?.repairAmount, tyre.repairAmount),
-//         image: mergeArray(trip.tyrePuncture?.image, extractPaths("punctureImage")),
-//       };
-//     }
-
-//     if (sanitizedBody.vehicleServicing) {
-//       const service = parseJSON(sanitizedBody.vehicleServicing);
-//       const meters = mergeArray(trip.vehicleServicing?.meter, Number(service?.meter)).filter(n => !isNaN(n));
-//       trip.vehicleServicing = {
-//         ...trip.vehicleServicing,
-//         ...service,
-//         amount: mergeArray(trip.vehicleServicing?.amount, service.amount),
-//         meter: meters,
-//         kmTravelled: calculateKm(meters),
-//         image: mergeArray(trip.vehicleServicing?.image, extractPaths("vehicleServicingImage")),
-//         receiptImage: mergeArray(trip.vehicleServicing?.receiptImage, extractPaths("vehicleServicingReceiptImage")),
-//       };
-//     }
-
-//     if (sanitizedBody.otherProblems) {
-//       const other = parseJSON(sanitizedBody.otherProblems);
-//       trip.otherProblems = {
-//         ...trip.otherProblems,
-//         ...other,
-//         amount: mergeArray(trip.otherProblems?.amount, other.amount),
-//         image: mergeArray(trip.otherProblems?.image, extractPaths("otherProblemsImage")),
-//       };
-//     }
-
-//     assignment.tripDetails = trip;
-//     await assignment.save();
-
-//     res.status(200).json({
-//       message: "✅ Trip details updated successfully",
-//       assignment: { _id: assignment._id, tripDetails: assignment.tripDetails }
-//     });
-
-//   } catch (err) {
-//     console.error("❌ Trip update error:", err);
-//     res.status(500).json({ message: "Server error", error: err.message });
-//   }
-// };
-
-// const getAssignCab = async (req, res) => {
-//   try {
-//     const adminId = req.admin._id;
-
-//     const assignments = await CabAssignment.find()
-//       .populate("cab")
-//       .populate("driver");
-
-//     const filteredAssignments = assignments.filter(
-//       (a) => a.cab && a.assignedBy.toString() === adminId.toString()
-//     );
-
-//     res.status(200).json(filteredAssignments);
-//   } catch (error) {
-//     res.status(500).json({ message: "Server Error", error: error.message });
-//   }
-// };
-
-// ✅ Assign a cab to a driver
-
-
-/**Working Properly */
 // const updateTripDetailsByDriver = async (req, res) => {
 //   try {
 //     const driverId = req.driver.id;
 
 //     const assignment = await CabAssignment.findOne({
 //       where: {
-//         driverId: driverId,
-//         status: { [Op.ne]: "completed" }, // uncomment if you add status filtering
+//         driverId,
+//         status: { [Op.ne]: "completed" },
 //       },
 //     });
 
 //     if (!assignment) {
-//       return res
-//         .status(404)
-//         .json({ message: "No active trip found for this driver." });
+//       return res.status(404).json({
+//         message: "No active trip found for this driver.",
+//       });
 //     }
 
 //     const files = req.files || {};
 //     const body = req.body || {};
-//     const trip = assignment || {}; // Sequelize raw data
-//     // Utils
 //     const sanitizedBody = Object.fromEntries(
 //       Object.entries(body).map(([k, v]) => [k.trim(), v])
 //     );
@@ -342,374 +201,8 @@ const assignTripToDriver = async (req, res) => {
 //     const mergeArray = (existing = [], incoming) =>
 //       existing
 //         .concat(Array.isArray(incoming) ? incoming : [incoming])
-//         .filter(Boolean);
+//         .filter((v) => v !== null && v !== undefined && v !== "");
 
-//     const calculateKm = (meters) =>
-//       meters.reduce(
-//         (acc, curr, i, arr) =>
-//           i === 0 ? acc : acc + Math.max(0, curr - arr[i - 1]),
-//         0
-//       );
-
-//     // === Process Trip Fields ===
-//     if (sanitizedBody.location) {
-//       trip.location = {
-//         ...trip.location,
-//         ...parseJSON(sanitizedBody.location),
-//       };
-//     }
-
-//     let fuelAmounts = [];
-//     if (body.fuelAmount) {
-//       if (Array.isArray(body.fuelAmount)) {
-//         fuelAmounts = body.fuelAmount
-//           .map((v) => parseFloat(v))
-//           .filter((v) => !isNaN(v));
-//       } else {
-//         const val = parseFloat(body.fuelAmount);
-//         if (!isNaN(val)) fuelAmounts = [val];
-//       }
-//     }
-
-//     let fuelReceiptImages = [];
-//     if (files.receiptImage) {
-//       fuelReceiptImages = files.receiptImage.map((f) => f.path);
-//     }
-
-//     // Merge with existing
-//     const updatedFuelAmount = [
-//       ...(assignment.fuelAmount || []),
-//       ...fuelAmounts,
-//     ];
-
-//     const updatedFuelReceiptImage = [
-//       ...(assignment.fuelReceiptImage || []),
-//       ...fuelReceiptImages,
-//     ];
-//     let updatedFuelType = assignment.fuelType;
-//     if (body.fuelType && ["Cash", "Card"].includes(body.fuelType)) {
-//       updatedFuelType = body.fuelType;
-//     }
-
-//     if (sanitizedBody.fastTag) {
-//       const tag = parseJSON(sanitizedBody.fastTag);
-//       trip.fastTag = {
-//         ...trip.fastTag,
-//         ...tag,
-//         amount: mergeArray(trip.fastTag?.amount, tag.amount),
-//       };
-//     }
-
-//     if (sanitizedBody.tyrePuncture) {
-//       const tyre = parseJSON(sanitizedBody.tyrePuncture);
-//       trip.tyrePuncture = {
-//         ...trip.tyrePuncture,
-//         ...tyre,
-//         repairAmount: mergeArray(
-//           trip.tyrePuncture?.repairAmount,
-//           tyre.repairAmount
-//         ),
-//         image: mergeArray(
-//           trip.tyrePuncture?.image,
-//           extractPaths("punctureImage")
-//         ),
-//       };
-//     }
-
-//     if (sanitizedBody.vehicleServicing) {
-//       const service = parseJSON(sanitizedBody.vehicleServicing);
-//       const meters = mergeArray(
-//         trip.vehicleServicing?.meter,
-//         Number(service?.meter)
-//       ).filter((n) => !isNaN(n));
-//       trip.vehicleServicing = {
-//         ...trip.vehicleServicing,
-//         ...service,
-//         amount: mergeArray(trip.vehicleServicing?.amount, service.amount),
-//         meter: meters,
-//         kmTravelled: calculateKm(meters),
-//         image: mergeArray(
-//           trip.vehicleServicing?.image,
-//           extractPaths("vehicleServicingImage")
-//         ),
-//         receiptImage: mergeArray(
-//           trip.vehicleServicing?.receiptImage,
-//           extractPaths("vehicleServicingReceiptImage")
-//         ),
-//       };
-//     }
-
-//     if (sanitizedBody.otherProblems) {
-//       const other = parseJSON(sanitizedBody.otherProblems);
-//       trip.otherProblems = {
-//         ...trip.otherProblems,
-//         ...other,
-//         amount: mergeArray(trip.otherProblems?.amount, other.amount),
-//         image: mergeArray(
-//           trip.otherProblems?.image,
-//           extractPaths("otherProblemsImage")
-//         ),
-//       };
-//     }
-
-//     // Sequelize-style update (tripDetails must be JSON/JSONB column)
-//     // await assignment.update({ tripDetails: trip });
-//     await assignment.update({
-//       fuelAmount: updatedFuelAmount,
-//       fuelReceiptImage: updatedFuelReceiptImage,
-//       fuelType: updatedFuelType,
-//     });
-
-//     res.status(200).json({
-//       message: "✅ Trip details updated successfully",
-//       assignment: {
-//         id: assignment.id,
-//       },
-//     });
-//   } catch (err) {
-//     console.error("❌ Trip update error:", err);
-//     res.status(500).json({ message: "Server error", error: err.message });
-//   }
-// };
-
-
-
-
-
-// const updateTripDetailsByDriver = async (req, res) => {
-//   try {
-//     const driverId = req.driver.id;
-
-//     // 1. Get the active assignment for this driver
-//     const assignment = await CabAssignment.findOne({
-//       where: {
-//         driverId,
-//         // Uncomment if you want to avoid completed trips
-//         status: { [Op.ne]: "completed" }
-//       }
-//     });
-
-//     if (!assignment) {
-//       return res.status(404).json({ message: "No active trip found for this driver." });
-//     }
-
-//     const files = req.files || {};
-//     const body = req.body || {};
-//     const trip = assignment.tripDetails || {}; // tripDetails can be JSONB if you add it later
-
-//     // === Utils ===
-//     const sanitizedBody = Object.fromEntries(
-//       Object.entries(body).map(([k, v]) => [k.trim(), v])
-//     );
-
-//     const parseJSON = (val) => {
-//       if (typeof val !== "string") return val || {};
-//       try {
-//         return JSON.parse(val);
-//       } catch {
-//         return {};
-//       }
-//     };
-
-//     const extractPaths = (field) =>
-//       Array.isArray(files[field]) ? files[field].map(f => f.path) : [];
-
-//     const mergeArray = (existing = [], incoming) =>
-//       existing.concat(Array.isArray(incoming) ? incoming : [incoming]).filter(Boolean);
-
-//     const calculateKm = (meters) =>
-//       meters.reduce((acc, curr, i, arr) =>
-//         i === 0 ? acc : acc + Math.max(0, curr - arr[i - 1]), 0
-//       );
-
-//     // === Update Main Locations ===
-//     if (sanitizedBody.locationFrom) {
-//       assignment.locationFrom = sanitizedBody.locationFrom;
-//     }
-//     if (sanitizedBody.locationTo) {
-//       assignment.locationTo = sanitizedBody.locationTo;
-//     }
-
-//     // === Process Trip Details ===
-//     if (sanitizedBody.location) {
-//       trip.location = { ...trip.location, ...parseJSON(sanitizedBody.location) };
-//     }
-
-//   if (sanitizedBody.fuel) {
-//   const fuel = parseJSON(sanitizedBody.fuel);
-
-//   assignment.fuelType = fuel.type || assignment.fuelType;
-
-//   assignment.fuelAmount = mergeArray(
-//     assignment.fuelAmount,
-//     fuel.amount
-//   );
-
-//   assignment.fuelReceiptImage = mergeArray(
-//     assignment.fuelReceiptImage,
-//     extractPaths("receiptImage")
-//   );
-
-//   assignment.fuelTransactionImage = mergeArray(
-//     assignment.fuelTransactionImage,
-//     extractPaths("transactionImage")
-//   );
-// }
-
-//     if (sanitizedBody.fastTag) {
-//       const tag = parseJSON(sanitizedBody.fastTag);
-//       trip.fastTag = {
-//         ...trip.fastTag,
-//         ...tag,
-//         amount: mergeArray(trip.fastTag?.amount, tag.amount),
-//       };
-//     }
-
-//     if (sanitizedBody.tyrePuncture) {
-//       const tyre = parseJSON(sanitizedBody.tyrePuncture);
-//       trip.tyrePuncture = {
-//         ...trip.tyrePuncture,
-//         ...tyre,
-//         repairAmount: mergeArray(trip.tyrePuncture?.repairAmount, tyre.repairAmount),
-//         image: mergeArray(trip.tyrePuncture?.image, extractPaths("punctureImage")),
-//       };
-//     }
-
-//     if (sanitizedBody.vehicleServicing) {
-//       const service = parseJSON(sanitizedBody.vehicleServicing);
-//       const meters = mergeArray(trip.vehicleServicing?.meter, Number(service?.meter))
-//         .filter(n => !isNaN(n));
-//       trip.vehicleServicing = {
-//         ...trip.vehicleServicing,
-//         ...service,
-//         amount: mergeArray(trip.vehicleServicing?.amount, service.amount),
-//         meter: meters,
-//         kmTravelled: calculateKm(meters),
-//         image: mergeArray(trip.vehicleServicing?.image, extractPaths("vehicleServicingImage")),
-//         receiptImage: mergeArray(trip.vehicleServicing?.receiptImage, extractPaths("vehicleServicingReceiptImage")),
-//       };
-//     }
-
-//     if (sanitizedBody.otherProblems) {
-//       const other = parseJSON(sanitizedBody.otherProblems);
-//       trip.otherProblems = {
-//         ...trip.otherProblems,
-//         ...other,
-//         amount: mergeArray(trip.otherProblems?.amount, other.amount),
-//         image: mergeArray(trip.otherProblems?.image, extractPaths("otherProblemsImage")),
-//       };
-//     }
-
-//     // 3. Save both locations + trip details
-//    await assignment.save();
-
-//     res.status(200).json({
-//       message: "✅ Trip details updated successfully",
-//       assignment: {
-//         id: assignment.id,
-//         locationFrom: assignment.locationFrom,
-//         locationTo: assignment.locationTo,
-//         tripDetails: assignment.tripDetails
-//       }
-//     });
-
-//   } catch (err) {
-//     console.error("❌ Trip update error:", err);
-//     res.status(500).json({ message: "Server error", error: err.message });
-//   }
-// };
-
-// const getAssignCab = async (req, res) => {
-//   try {
-//     const adminId = req.admin._id;
-
-//     const assignments = await CabAssignment.find()
-//       .populate("cab")
-//       .populate("driver");
-
-//     const filteredAssignments = assignments.filter(
-//       (a) => a.cab && a.assignedBy.toString() === adminId.toString()
-//     );
-
-//     res.status(200).json(filteredAssignments);
-//   } catch (error) {
-//     res.status(500).json({ message: "Server Error", error: error.message });
-//   }
-// };
-
-
-
-
-
-
-
-
-
-
-
-
-/**It is mine updateTripDetailsByDriver */
-
-// const updateTripDetailsByDriver = async (req, res) => {
-//   try {
-//     const driverId = req.driver.id;
-
-//     const assignment = await CabAssignment.findOne({
-//       where: {
-//         driverId: driverId,
-//         status: { [Op.ne]: "completed" }, // uncomment if you add status filtering
-//       },
-//     });
-
-//     if (!assignment) {
-//       return res
-//         .status(404)
-//         .json({ message: "No active trip found for this driver." });
-//     }
-
-//     const files = req.files || {};
-//     const body = req.body || {};
-//     const trip = assignment || {}; // Sequelize raw data (kept for backward compatibility)
-
-
-//     console.log("Assignment pickupLocation:", body.pickupLocation)
-
-//     const updatedPickupLocation = body.pickupLocation || assignment.pickupLocation || null;
-    
-//     const updatedDropLocation = body.dropLocation || assignment.dropLocation || null;
-   
-//     console.log("Updated Pickup Location:", updatedPickupLocation)
-
-//     // Utils
-//     const sanitizedBody = Object.fromEntries(
-//       Object.entries(body).map(([k, v]) => [k.trim(), v])
-//     );
-
-//     const parseJSON = (val) => {
-//       if (typeof val !== "string") return val || {};
-//       try {
-//         return JSON.parse(val);
-//       } catch {
-//         return {};
-//       }
-//     };
-
-//     const extractPaths = (field) =>
-//       Array.isArray(files[field]) ? files[field].map((f) => f.path) : [];
-
-//     const mergeArray = (existing = [], incoming) =>
-//       existing
-//         .concat(Array.isArray(incoming) ? incoming : [incoming])
-//         .filter(Boolean);
-
-//     const calculateKm = (meters) =>
-//       meters.reduce(
-//         (acc, curr, i, arr) =>
-//           i === 0 ? acc : acc + Math.max(0, curr - arr[i - 1]),
-//         0
-//       );
-
-//     // Helper to parse numeric amounts (strings -> floats)
 //     const parseNumberArray = (incoming) => {
 //       if (incoming === undefined || incoming === null) return [];
 //       if (Array.isArray(incoming)) {
@@ -724,62 +217,60 @@ const assignTripToDriver = async (req, res) => {
 //       return isNaN(n) ? [] : [n];
 //     };
 
-//     // === Process Trip Fields (keep existing trip JSON merging behaviour) ===
+//     const calculateKm = (meters) =>
+//       meters.reduce(
+//         (acc, curr, i, arr) =>
+//           i === 0 ? acc : acc + Math.max(0, curr - arr[i - 1]),
+//         0
+//       );
+
+//     // ----------------- BASIC LOCATIONS -----------------
+//     const updatedPickupLocation = body.pickupLocation || assignment.pickupLocation || null;
+    
+//     const updatedDropLocation = body.dropLocation || assignment.dropLocation || null;
+   
+//     console.log("Updated Pickup Location:", updatedPickupLocation)
+
 //     if (sanitizedBody.location) {
-//       trip.location = {
-//         ...trip.location,
+//       assignment.location = {
+//         ...assignment.location,
 //         ...parseJSON(sanitizedBody.location),
 //       };
 //     }
 
-//     // --- FUEL (already implemented) ---
-//     let fuelAmounts = [];
-//     if (body.fuelAmount) {
-//       if (Array.isArray(body.fuelAmount)) {
-//         fuelAmounts = body.fuelAmount
-//           .map((v) => parseFloat(v))
-//           .filter((v) => !isNaN(v));
-//       } else {
-//         const val = parseFloat(body.fuelAmount);
-//         if (!isNaN(val)) fuelAmounts = [val];
-//       }
-//     }
-
-//     const fuelReceiptImages = extractPaths("receiptImage");
-//     const fuelTransactionImages = extractPaths("transactionImage");
-
-//     const updatedFuelAmount = [...(assignment.fuelAmount || []), ...fuelAmounts];
-//     const updatedFuelReceiptImage = [
-//       ...(assignment.fuelReceiptImage || []),
-//       ...fuelReceiptImages,
-//     ];
-//     const updatedFuelTransactionImage = [
-//       ...(assignment.fuelTransactionImage || []),
-//       ...fuelTransactionImages,
-//     ];
+//     // ----------------- FUEL -----------------
+//     let updatedFuelAmount = mergeArray(
+//       assignment.fuelAmount || [],
+//       parseNumberArray(body.fuelAmount)
+//     );
+//     let updatedFuelReceiptImage = mergeArray(
+//       assignment.fuelReceiptImage || [],
+//       extractPaths("receiptImage")
+//     );
+//     let updatedFuelTransactionImage = mergeArray(
+//       assignment.fuelTransactionImage || [],
+//       extractPaths("transactionImage")
+//     );
 
 //     let updatedFuelType = assignment.fuelType;
 //     if (body.fuelType && ["Cash", "Card"].includes(body.fuelType)) {
 //       updatedFuelType = body.fuelType;
 //     }
 
-//     // --- FASTTAG ---
-//     // Expecting sanitizedBody.fastTag as JSON string like: { "amount": 100, "paymentMode":"Cash", "cardDetails":"xxxx" }
-//     console.log(assignment.fastTagAmount)
-//     let updatedFastTagAmount = assignment.fastTagAmount || [];
-//     let updatedFastTagPaymentMode = assignment.fastTagPaymentMode;
-//     let updatedFastTagCardDetails = assignment.fastTagCardDetails;
+//     // ----------------- FASTTAG -----------------
+//     let updatedFastTagAmount = mergeArray(
+//       assignment.fastTagAmount || [],
+//       parseNumberArray(body.fastTagAmount)
+//     );
+//     let updatedFastTagPaymentMode = body.fastTagPaymentMode && ["Online Deduction", "Cash", "Card"].includes(body.fastTagPaymentMode)
+//       ? body.fastTagPaymentMode
+//       : assignment.fastTagPaymentMode;
+//     let updatedFastTagCardDetails = body.fastTagCardDetails || assignment.fastTagCardDetails;
 
 //     if (sanitizedBody.fastTag) {
-//       const tag = parseJSON(sanitizedBody.fastTag) || {};
-//       if (tag.amount !== undefined) {
-//         const nums = parseNumberArray(tag.amount);
-//         updatedFastTagAmount = mergeArray(assignment.fastTagAmount || [], nums);
-//       }
-//       if (
-//         tag.paymentMode &&
-//         ["Online Deduction", "Cash", "Card"].includes(tag.paymentMode)
-//       ) {
+//       const tag = parseJSON(sanitizedBody.fastTag);
+//       updatedFastTagAmount = mergeArray(updatedFastTagAmount, parseNumberArray(tag.amount));
+//       if (["Online Deduction", "Cash", "Card"].includes(tag.paymentMode)) {
 //         updatedFastTagPaymentMode = tag.paymentMode;
 //       }
 //       if (tag.cardDetails) {
@@ -787,57 +278,30 @@ const assignTripToDriver = async (req, res) => {
 //       }
 //     }
 
-//     // Also accept separate body.fastTagAmount / body.fastTagPaymentMode / body.fastTagCardDetails
-//     if (body.fastTagAmount) {
-//       updatedFastTagAmount = mergeArray(
-//         assignment.fastTagAmount || [],
-//         parseNumberArray(body.fastTagAmount)
-//       );
-//     }
-//     if (body.fastTagPaymentMode && ["Online Deduction", "Cash", "Card"].includes(body.fastTagPaymentMode)) {
-//       updatedFastTagPaymentMode = body.fastTagPaymentMode;
-//     }
-//     if (body.fastTagCardDetails) {
-//       updatedFastTagCardDetails = body.fastTagCardDetails;
-//     }
+//     // ----------------- TYRE PUNCTURE -----------------
+//     let updatedTyreRepairAmount = mergeArray(
+//       assignment.tyreRepairAmount || [],
+//       parseNumberArray(body.tyreRepairAmount)
+//     );
+//     let updatedTyreImage = mergeArray(
+//       assignment.tyreImage || [],
+//       extractPaths("punctureImage")
+//     );
 
-
-//     console.log("Tyre Repair Amount",body.tyreRepairAmount)
-
-//     // --- TYRE PUNCTURE ---
-//     // sanitizedBody.tyrePuncture expected JSON like: { "repairAmount": 200, "notes": "..." }
-   
-//     let updatedTyreRepairAmount = assignment.tyreRepairAmount || [];
-//     let updatedTyreImage = assignment.tyreImage || [];
-
-//     // merge incoming amounts from JSON
 //     if (sanitizedBody.tyrePuncture) {
-//       const tyre = parseJSON(sanitizedBody.tyrePuncture) || {};
-//       if (tyre.repairAmount !== undefined) {
-//         updatedTyreRepairAmount = mergeArray(
-//           assignment.tyreRepairAmount || [],
-//           parseNumberArray(tyre.repairAmount)
-//         );
-//       }
+//       const tyre = parseJSON(sanitizedBody.tyrePuncture);
+//       updatedTyreRepairAmount = mergeArray(updatedTyreRepairAmount, parseNumberArray(tyre.repairAmount));
 //     }
 
-
-//     if (body.tyreRepairAmount) {
-//   updatedTyreRepairAmount = mergeArray(
-//     assignment.tyreRepairAmount || [],
-//     parseNumberArray(body.tyreRepairAmount)
-//   );
-// }
-//     // merge images (files key: punctureImage)
-//     const punctureImages = extractPaths("punctureImage");
-//     if (punctureImages.length > 0) {
-//       updatedTyreImage = mergeArray(assignment.tyreImage || [], punctureImages);
-//     }
-
-//     // --- VEHICLE SERVICING ---
-//     // sanitizedBody.vehicleServicing expected JSON like: { "amount": 2000, "meter": 12345 }
-//     let updatedServicingAmount = assignment.servicingAmount || [];
-//     let updatedServicingMeter = assignment.servicingMeter || [];
+//     // ----------------- VEHICLE SERVICING -----------------
+//     let updatedServicingAmount = mergeArray(
+//       assignment.servicingAmount || [],
+//       parseNumberArray(body.servicingAmount)
+//     );
+//     let updatedServicingMeter = mergeArray(
+//       assignment.servicingMeter || [],
+//       parseNumberArray(body.servicingMeter)
+//     );
 //     let updatedServicingImage = mergeArray(
 //       assignment.servicingImage || [],
 //       extractPaths("vehicleServicingImage")
@@ -848,126 +312,88 @@ const assignTripToDriver = async (req, res) => {
 //     );
 
 //     if (sanitizedBody.vehicleServicing) {
-//       const service = parseJSON(sanitizedBody.vehicleServicing) || {};
-//       if (service.amount !== undefined) {
-//         updatedServicingAmount = mergeArray(
-//           assignment.servicingAmount || [],
-//           parseNumberArray(service.amount)
-//         );
-//       }
-
-//       if (body.servicingMeter) {
-//   updatedServicingMeter = mergeArray(
-//     assignment.servicingMeter || [],
-//     parseNumberArray(body.servicingMeter)
-//   );
-// }
-//       if (service.meter !== undefined) {
-//         // service.meter may be a single number or an array
-//         const metersIncoming = Array.isArray(service.meter)
-//           ? service.meter.map((m) => Number(m))
-//           : [Number(service.meter)];
-//         updatedServicingMeter = mergeArray(
-//           assignment.servicingMeter || [],
-//           metersIncoming
-//         ).filter((n) => !isNaN(n));
-//       }
-//       // images already merged above
+//       const service = parseJSON(sanitizedBody.vehicleServicing);
+//       updatedServicingAmount = mergeArray(updatedServicingAmount, parseNumberArray(service.amount));
+//       updatedServicingMeter = mergeArray(updatedServicingMeter, parseNumberArray(service.meter));
 //     }
 
-//     if (body.servicingAmount) {
-//   updatedServicingAmount = mergeArray(
-//     assignment.servicingAmount || [],
-//     parseNumberArray(body.servicingAmount)
-//   );
-// }
-// if (body.servicingMeter) {
-//   updatedServicingMeter = mergeArray(
-//     assignment.servicingMeter || [],
-//     parseNumberArray(body.servicingMeter)
-//   );
-// }
-
-//     // recalc km travelled from merged meter array
-//     const updatedServicingKmTravelled = Array.isArray(updatedServicingMeter) && updatedServicingMeter.length > 0
+//     // Calculate KM travelled
+//     let updatedServicingKmTravelled = updatedServicingMeter.length > 0
 //       ? calculateKm(updatedServicingMeter)
 //       : assignment.servicingKmTravelled || 0;
 
-//     // --- OTHER PROBLEMS ---
-//     // sanitizedBody.otherProblems expected JSON like: { "amount": 150, "details":"..." }
-//     let updatedOtherAmount = assignment.otherAmount || [];
+//     let updatedservicingRequired = assignment.servicingRequired;
+
+//     // Reset if servicing is completed
+//     if (
+//       updatedServicingAmount.length > (assignment.servicingAmount?.length || 0) &&
+//       updatedservicingRequired
+//     ) {
+//       updatedServicingKmTravelled = 0;
+//       updatedservicingRequired = false;
+//       updatedServicingMeter = [];
+//     } else if (updatedServicingKmTravelled > 10000) {
+//       updatedservicingRequired = true;
+//     }
+
+//     // ----------------- OTHER PROBLEMS -----------------
+//     let updatedOtherAmount = mergeArray(
+//       assignment.otherAmount || [],
+//       parseNumberArray(body.otherAmount)
+//     );
 //     let updatedOtherImage = mergeArray(
 //       assignment.otherImage || [],
 //       extractPaths("otherProblemsImage")
 //     );
-//     let updatedOtherDetails = assignment.otherDetails || "";
+//     let updatedOtherDetails = body.otherDetails || assignment.otherDetails || "";
 
 //     if (sanitizedBody.otherProblems) {
-//       const other = parseJSON(sanitizedBody.otherProblems) || {};
-//       if (other.amount !== undefined) {
-//         updatedOtherAmount = mergeArray(
-//           assignment.otherAmount || [],
-//           parseNumberArray(other.amount)
-//         );
-//       }
+//       const other = parseJSON(sanitizedBody.otherProblems);
+//       updatedOtherAmount = mergeArray(updatedOtherAmount, parseNumberArray(other.amount));
 //       if (other.details) {
 //         updatedOtherDetails = other.details;
 //       }
 //     }
 
-//     if (body.otherAmount) {
-//   updatedOtherAmount = mergeArray(
-//     assignment.otherAmount || [],
-//     parseNumberArray(body.otherAmount)
-//   );
-// }
-// if (body.otherDetails) {
-//   updatedOtherDetails = body.otherDetails;
-// }
-
-//     // === Persist all collected column updates in a single DB call ===
+//     // ----------------- UPDATE DB -----------------
 //     await assignment.update({
 //       pickupLocation: updatedPickupLocation,
-//   dropLocation: updatedDropLocation,
-//       // fuel
+//       dropLocation: updatedDropLocation,
 //       fuelAmount: updatedFuelAmount,
 //       fuelReceiptImage: updatedFuelReceiptImage,
 //       fuelTransactionImage: updatedFuelTransactionImage,
 //       fuelType: updatedFuelType,
-
-//       // fastTag (columns from your model)
 //       fastTagAmount: updatedFastTagAmount,
 //       fastTagPaymentMode: updatedFastTagPaymentMode,
 //       fastTagCardDetails: updatedFastTagCardDetails,
-
-//       // tyre puncture
 //       tyreRepairAmount: updatedTyreRepairAmount,
 //       tyreImage: updatedTyreImage,
-
-//       // servicing
 //       servicingAmount: updatedServicingAmount,
 //       servicingMeter: updatedServicingMeter,
 //       servicingImage: updatedServicingImage,
 //       servicingReceiptImage: updatedServicingReceiptImage,
 //       servicingKmTravelled: updatedServicingKmTravelled,
-
-//       // other problems
+//       servicingRequired: updatedservicingRequired,
 //       otherAmount: updatedOtherAmount,
 //       otherImage: updatedOtherImage,
 //       otherDetails: updatedOtherDetails,
 //     });
 
+//     const updatedAssignment = await CabAssignment.findByPk(assignment.id);
+
 //     res.status(200).json({
 //       message: "✅ Trip details updated successfully",
-//       assignment: {
-//         id: assignment.id,
-//       },
+//       assignment: updatedAssignment,
 //     });
 //   } catch (err) {
 //     console.error("❌ Trip update error:", err);
-//     res.status(500).json({ message: "Server error", error: err.message });
+//     res.status(500).json({
+//       message: "Server error",
+//       error: err.message,
+//     });
 //   }
 // };
+
 
 
 const updateTripDetailsByDriver = async (req, res) => {
@@ -1024,18 +450,10 @@ const updateTripDetailsByDriver = async (req, res) => {
       return isNaN(n) ? [] : [n];
     };
 
-    const calculateKm = (meters) =>
-      meters.reduce(
-        (acc, curr, i, arr) =>
-          i === 0 ? acc : acc + Math.max(0, curr - arr[i - 1]),
-        0
-      );
-
     // ----------------- BASIC LOCATIONS -----------------
     const updatedPickupLocation = body.pickupLocation || assignment.pickupLocation || null;
-    
     const updatedDropLocation = body.dropLocation || assignment.dropLocation || null;
-   
+
     console.log("Updated Pickup Location:", updatedPickupLocation)
 
     if (sanitizedBody.location) {
@@ -1105,10 +523,13 @@ const updateTripDetailsByDriver = async (req, res) => {
       assignment.servicingAmount || [],
       parseNumberArray(body.servicingAmount)
     );
-    let updatedServicingMeter = mergeArray(
+
+    // 🔹 REPLACED servicingMeter with servicingKM
+    let updatedServicingMeter= mergeArray(
       assignment.servicingMeter || [],
       parseNumberArray(body.servicingMeter)
     );
+
     let updatedServicingImage = mergeArray(
       assignment.servicingImage || [],
       extractPaths("vehicleServicingImage")
@@ -1121,13 +542,11 @@ const updateTripDetailsByDriver = async (req, res) => {
     if (sanitizedBody.vehicleServicing) {
       const service = parseJSON(sanitizedBody.vehicleServicing);
       updatedServicingAmount = mergeArray(updatedServicingAmount, parseNumberArray(service.amount));
-      updatedServicingMeter = mergeArray(updatedServicingMeter, parseNumberArray(service.meter));
+      updatedServicingMeter = mergeArray(updatedServicingMeter, parseNumberArray(service.servicingMeter));
     }
 
-    // Calculate KM travelled
-    let updatedServicingKmTravelled = updatedServicingMeter.length > 0
-      ? calculateKm(updatedServicingMeter)
-      : assignment.servicingKmTravelled || 0;
+    // 🔹 Directly sum trip km
+    let updatedServicingKmTravelled = updatedServicingMeter.reduce((a, b) => a + b, 0);
 
     let updatedservicingRequired = assignment.servicingRequired;
 
@@ -1176,7 +595,7 @@ const updateTripDetailsByDriver = async (req, res) => {
       tyreRepairAmount: updatedTyreRepairAmount,
       tyreImage: updatedTyreImage,
       servicingAmount: updatedServicingAmount,
-      servicingMeter: updatedServicingMeter,
+      servicingMeter: updatedServicingMeter,   // 🔹 updated field
       servicingImage: updatedServicingImage,
       servicingReceiptImage: updatedServicingReceiptImage,
       servicingKmTravelled: updatedServicingKmTravelled,

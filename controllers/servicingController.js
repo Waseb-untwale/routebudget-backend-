@@ -123,95 +123,49 @@ exports.assignServicing = async (req, res) => {
   }
 };
 
-// ✅ Driver updates status with receipt and cost
-// exports.updateServicingStatus = async (req, res) => {
-//   try {
-//         const servicingId = req.params.id;
-
-//     const servicing = await ServicingAssignment.findByPk(servicingId);
-
-//     if (!servicing) {
-//       return res.status(404).json({ error: "Servicing not found" });
-//     }
-
-//     if (servicing.driverId !== req.driver.id) {
-//       return res.status(403).json({ error: "Unauthorized" });
-//     }
-
-//     servicing.receiptImage = req.file?.path || servicing.receiptImage;
-//     servicing.servicingAmount = req.body.servicingCost || servicing.servicingAmount;
-//     servicing.status = "completed";
-
-//     const cabAssignment = await CabAssignment.findOne({ where: { cabId: servicing.cabId } });
-
-//     if (!cabAssignment) {
-//       return res.status(404).json({ error: "Cab assignment not found" });
-//     }
-
-//     const tripDetails = cabAssignment.tripDetails || {};
-//     tripDetails.vehicleServicing = {
-//       ...tripDetails.vehicleServicing,
-//       meter: [],
-//       kmTravelled: 0,
-//     };
-
-//     cabAssignment.tripDetails = tripDetails;
-
-//     await Promise.all([servicing.save(), cabAssignment.save()]);
-
-//     res.status(200).json({
-//       message: "Servicing updated successfully",
-//       servicing,
-//     });
-//   } catch (err) {
-//     res.status(500).json({ error: "Server error", details: err.message });
-//   }
-// };
-
 exports.updateServicingStatus = async (req, res) => {
   try {
     const servicingId = req.params.id;
+    const driverId = req.driver.id;
 
-    console.log("Updating servicing for I")
-
-    // 1. Find servicing assignment
+    // 1️⃣ Find servicing assignment
     const servicing = await ServicingAssignment.findByPk(servicingId);
     if (!servicing) {
       return res.status(404).json({ error: "Servicing not found" });
     }
 
-    // 2. Authorization check
-    if (servicing.driverId !== req.driver.id) {
+    // 2️⃣ Authorization check
+    if (servicing.driverId !== driverId) {
       return res.status(403).json({ error: "Unauthorized" });
     }
 
-    // 3. Update servicing details
+    // 3️⃣ Update servicing details
     servicing.receiptImage =
       req.file?.path || req.body.receiptImage || servicing.receiptImage;
     servicing.servicingAmount =
       req.body.servicingAmount || servicing.servicingAmount;
     servicing.status = "completed";
 
-    // 4. Find related cab assignment
+    // 4️⃣ Find related cab assignment
     const cabAssignment = await CabAssignment.findOne({
-      where: { cabId: servicing.cabId },
+      where: { cabId: servicing.cabId, driverId },
     });
+
     if (!cabAssignment) {
       return res.status(404).json({ error: "Cab assignment not found" });
     }
 
-    // 5. Reset servicing data
+    // 5️⃣ Reset servicing and trip data
     cabAssignment.servicingRequired = false;
     cabAssignment.servicingKmTravelled = 0;
-    // Force reset array in PostgreSQL
-    cabAssignment.servicingMeter = [];
+    cabAssignment.servicingMeter = [];  // ✅ reset array properly
+    cabAssignment.servicingTotalKm = 0; // ✅ reset total if needed
 
-    // 6. Save both updates together
+    // 6️⃣ Save updates
     await Promise.all([servicing.save(), cabAssignment.save()]);
 
-    // 7. Response
     res.status(200).json({
-      message: "Servicing updated successfully",
+      message: "Servicing completed successfully",
       servicing,
       cabAssignment,
     });
@@ -221,15 +175,13 @@ exports.updateServicingStatus = async (req, res) => {
   }
 };
 
-
-// ✅ Driver gets assigned (pending) servicings
 exports.getAssignedServicings = async (req, res) => {
   try {
     const services = await ServicingAssignment.findAll({
       where: { driverId: req.driver.id, status: "pending" },
       include: [
         { model: CabsDetails },
-        { model: Driver},
+        { model: Driver },
       ],
     });
 
@@ -256,6 +208,24 @@ exports.getAssignedServicingsAdmin = async (req, res) => {
   }
 };
 
+
+// get single servicing by servicingId
+exports.getServicingById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const servicing = await ServicingAssignment.findByPk(id);
+
+    if (!servicing) {
+      return res.status(404).json({ message: "Servicing not found" });
+    }
+
+    res.status(200).json({ servicing });
+  } catch (err) {
+    console.error("Error fetching servicing by ID:", err);
+    res.status(500).json({ error: "Server Error", details: err.message });
+  }
+};
 
 
 
